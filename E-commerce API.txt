@@ -1,0 +1,298 @@
+1. Project Setup
+Initialize React App
+
+
+
+bash
+
+
+
+
+
+npx create-react-app ecommerce-app
+cd ecommerce-app
+npm install react-bootstrap bootstrap react-router-dom axios
+
+
+
+
+
+Add Bootstrap CSS
+In src/index.js, import Bootstrap CSS:
+
+
+
+javascript
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+
+
+
+2. Project Structure
+
+
+mathematica
+
+ecommerce-app/
+│
+├── public/
+│   ├── index.html
+│
+├── src/
+│   ├── components/
+│   │   ├── Customer/
+│   │   │   ├── CreateCustomerForm.js
+│   │   │   ├── CustomerDetails.js
+│   │   │   ├── UpdateCustomerForm.js
+│   │   │   ├── CustomerList.js
+│   │   │   ├── DeleteCustomer.js
+│   │   ├── Product/
+│   │   │   ├── CreateProductForm.js
+│   │   │   ├── ProductDetails.js
+│   │   │   ├── UpdateProductForm.js
+│   │   │   ├── ProductList.js
+│   │   │   ├── DeleteProduct.js
+│   │   ├── Order/
+│   │   │   ├── PlaceOrderForm.js
+│   │   │   ├── OrderDetails.js
+│   │   │   ├── TrackOrder.js
+│   │   │   ├── OrderHistory.js
+│   ├── pages/
+│   │   ├── HomePage.js
+│   │   ├── CustomerPage.js
+│   │   ├── ProductPage.js
+│   │   ├── OrderPage.js
+│   ├── App.js
+│   ├── index.js
+│   ├── api/
+│   │   ├── customerApi.js
+│   │   ├── productApi.js
+│   │   ├── orderApi.js
+
+
+
+
+
+3. Basic Routing Setup
+
+
+javascript
+
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import CustomerPage from './pages/CustomerPage';
+import ProductPage from './pages/ProductPage';
+import OrderPage from './pages/OrderPage';
+import { Navbar, Nav } from 'react-bootstrap';
+
+function App() {
+  return (
+    <Router>
+      <div>
+        <Navbar bg="light" expand="lg">
+          <Navbar.Brand href="/">E-commerce App</Navbar.Brand>
+          <Nav className="mr-auto">
+            <Nav.Link href="/">Home</Nav.Link>
+            <Nav.Link href="/customers">Customers</Nav.Link>
+            <Nav.Link href="/products">Products</Nav.Link>
+            <Nav.Link href="/orders">Orders</Nav.Link>
+          </Nav>
+        </Navbar>
+        <div className="container mt-4">
+          <Switch>
+            <Route exact path="/" component={HomePage} />
+            <Route path="/customers" component={CustomerPage} />
+            <Route path="/products" component={ProductPage} />
+            <Route path="/orders" component={OrderPage} />
+          </Switch>
+        </div>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+
+
+
+
+4. Customer Components
+
+
+
+javascript
+
+
+
+
+import React, { useState } from 'react';
+import { Form, Button } from 'react-bootstrap';
+import axios from 'axios';
+
+const CreateCustomerForm = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const newCustomer = { name, email, phone };
+    try {
+      await axios.post('/api/customers', newCustomer);
+      alert('Customer created successfully');
+      setName('');
+      setEmail('');
+      setPhone('');
+    } catch (error) {
+      alert('Error creating customer');
+    }
+  };
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Form.Group controlId="formName">
+        <Form.Label>Name</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+      </Form.Group>
+
+      <Form.Group controlId="formEmail">
+        <Form.Label>Email</Form.Label>
+        <Form.Control
+          type="email"
+          placeholder="Enter email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </Form.Group>
+
+      <Form.Group controlId="formPhone">
+        <Form.Label>Phone</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+      </Form.Group>
+
+      <Button variant="primary" type="submit">
+        Create Customer
+      </Button>
+    </Form>
+  );
+};
+
+export default CreateCustomerForm;
+
+
+
+src/components/Customer/CustomerDetails.js
+
+javascript
+
+
+
+
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+
+const CustomerDetails = () => {
+  const { id } = useParams();
+  const [customer, setCustomer] = useState(null);
+
+  useEffect(() => {
+    const fetchCustomer = async () => {
+      try {
+        const response = await axios.get(`/api/customers/${id}`);
+        setCustomer(response.data);
+      } catch (error) {
+        alert('Error fetching customer details');
+      }
+    };
+
+    fetchCustomer();
+  }, [id]);
+
+  if (!customer) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1>{customer.name}</h1>
+      <p>Email: {customer.email}</p>
+      <p>Phone: {customer.phone}</p>
+    </div>
+  );
+};
+
+export default CustomerDetails;
+
+
+
+5. Page Components
+src/pages/CustomerPage.js
+
+javascript
+
+
+
+
+import React from 'react';
+import CreateCustomerForm from '../components/Customer/CreateCustomerForm';
+import CustomerList from '../components/Customer/CustomerList';
+
+const CustomerPage = () => {
+  return (
+    <div>
+      <h1>Customer Management</h1>
+      <CreateCustomerForm />
+      <CustomerList />
+    </div>
+  );
+};
+
+export default CustomerPage;
+
+
+6. API Setup
+
+src/api/customerApi.js
+
+javascript
+
+
+
+
+import axios from 'axios';
+
+export const getCustomers = async () => {
+  try {
+    const response = await axios.get('/api/customers');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createCustomer = async (customer) => {
+  try {
+    const response = await axios.post('/api/customers', customer);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Add other CRUD operations as needed
